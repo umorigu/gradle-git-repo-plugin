@@ -17,17 +17,17 @@ class GitRepoPlugin  implements Plugin<Project> {
         project.extensions.create("gitPublishConfig", GitPublishConfig)
 
         // allow declaring special repositories
-        if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, Object)) {
-            project.repositories.metaClass.github = { String org, String repo, String branch = "master", String type = "releases", def closure = null ->
+        if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, String, Object)) {
+            project.repositories.metaClass.github = { String org, String repo, String upstream = "origin", String branch = "master", String type = "releases", def closure = null ->
                 String gitUrl = githubCloneUrl(org, repo)
                 def orgDir = repositoryDir(project, org)
-                addLocalRepo(project, ensureLocalRepo(project, orgDir, repo, gitUrl, branch), type)
+                addLocalRepo(project, ensureLocalRepo(project, orgDir, repo, gitUrl, upstream, branch), type)
             }
         }
-        if (!project.repositories.metaClass.respondsTo(project.repositories, 'git', String, String, String, String, Object)) {
-            project.repositories.metaClass.git = { String gitUrl, String name, String branch = "master", String type = "releases", def closure = null ->
+        if (!project.repositories.metaClass.respondsTo(project.repositories, 'git', String, String, String, String, String, Object)) {
+            project.repositories.metaClass.git = { String gitUrl, String name, String upstream = "origin", String branch = "master", String type = "releases", def closure = null ->
                 def orgDir = repositoryDir(project, name)
-                addLocalRepo(project, ensureLocalRepo(project, orgDir, name, gitUrl, branch), type)
+                addLocalRepo(project, ensureLocalRepo(project, orgDir, name, gitUrl, upstream, branch), type)
             }
         }
 
@@ -41,6 +41,7 @@ class GitRepoPlugin  implements Plugin<Project> {
                             repositoryDir(project, project.gitPublishConfig.org),
                             project.gitPublishConfig.repo,
                             gitCloneUrl(project),
+                            project.gitPublishConfig.upstream,
                             project.gitPublishConfig.branch)
                 }
                 publishTask(project).dependsOn(cloneRepo)
@@ -51,7 +52,7 @@ class GitRepoPlugin  implements Plugin<Project> {
                     def gitRepo= Grgit.open(dir: gitDir)
 
                     gitRepo.add(patterns: ['.'])
-                    gitRepo.commit(message: "published artifacts for  ${project.getGroup()} ${project.version}")
+                    gitRepo.commit(message: "Published artifacts ${project.getGroup()}:${project.getName()}:${project.version}")
                     gitRepo.push()
                 }
                 publishAndPush.dependsOn(publishTask(project))
@@ -66,7 +67,6 @@ class GitRepoPlugin  implements Plugin<Project> {
         } catch (UnknownTaskException e) {
             return false;
         }
-
     }
 
     private static Task publishTask(Project project) {
@@ -92,16 +92,23 @@ class GitRepoPlugin  implements Plugin<Project> {
         }
     }
 
-    private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
+    private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String upstream, String branch) {
         def repoDir = new File(directory, name)
         def gitRepo;
         if(repoDir.directory || project.hasProperty("offline")) {
-            gitRepo= Grgit.open(dir: repoDir)
+            gitRepo = Grgit.open(dir: repoDir)
         } else {
-            gitRepo= Grgit.clone(dir: repoDir, uri: gitUrl)
+            gitRepo = Grgit.clone(dir: repoDir, uri: gitUrl)
         }
         if(!project.hasProperty("offline")) {
-            gitRepo.checkout(branch: branch)
+            if(gitRepo.branch.list().find { it.name == branch })
+            {
+                gitRepo.checkout(branch: branch)
+            }
+            else
+            {
+                gitRepo.checkout(branch: branch, startPoint: upstream + '/' + branch, createBranch: true) 
+            }
             gitRepo.pull()
         }
 
@@ -112,9 +119,7 @@ class GitRepoPlugin  implements Plugin<Project> {
         project.repositories.maven {
             url repoDir.getAbsolutePath() + "/" + type
         }
-
     }
-
 }
 
 class GitPublishConfig {
@@ -122,6 +127,7 @@ class GitPublishConfig {
     def String repo = ""
     def String provider = "github.com" //github.com, gitlab or others
     def String gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
+    def String upstream = "origin"
     def String branch = "master"
     def String home = "${System.properties['user.home']}/.gitRepos"
     def String publishAndPushTask = "publishToGithub"

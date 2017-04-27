@@ -28,7 +28,7 @@ This plugin needs to be added via the standard plugin mechanism with this builds
             mavenCentral()
         }
         dependencies {
-            classpath group: 'com.layer', name: 'gradle-git-repo-plugin', version: '2.0.2'
+            classpath group: 'com.layer', name: 'gradle-git-repo-plugin', version: '2.0.3'
         }
     }
 
@@ -42,8 +42,8 @@ and then apply the plugin
 This plug adds `github` and `git` methods to your repositories block
 
     repositories {
-        github("layerhq", "maven-private", "master", "releases")
-        git("https://some/clone/url.git", "arbitrary.unique.name", "master", "releases")
+        github("layerhq", "maven-private", "origin", "master", "releases")
+        git("https://some/clone/url.git", "arbitrary.unique.name", "origin", "master", "releases")
     }
 
 Add either alongside other repositories and you're good to go. The `github` variant is
@@ -61,21 +61,32 @@ configuration block, which will use github by default:
     gitPublishConfig{
         org = "layerhq"
         repo = "maven-private"
+        upstream = "origin"
+        branch = "master"
     }
 
 The `maven-publish` plugin defines a publish task for you, so you just need to
 supply the right url in the publishing block
 
-    publishing {
-        publications {
-            //...
-        }
-        repositories {
-            maven {
-                url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
-            }
-        }
-    }
+    task sourceJar(type: Jar) {
+          classifier "sources"
+          from sourceSets.main.allJava
+     }
+     
+     publishing {
+          publications {
+               mavenJava(MavenPublication) {
+                    from components.java
+                    
+                    artifact sourceJar
+               }
+          }
+          repositories {
+               maven {
+                    url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
+               }
+          }
+     }
 
 Then you can run
 
@@ -117,21 +128,20 @@ The following gradle properties affect cloning dependencies
 For publishing, the following configuration is supported, to allow non-github repos and other settings
 
     gitRepoConfig {
-		// mandatory
+      // mandatory
+      org = "myorg"
+      repo = "myrepo"
 
-        org = "myorg"
-		repo = "myrepo"
-
-		// optional
-
-	    gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
-		provider = "github.com" // or "gitlab.com", or any other github like
-		branch = "master"
-        home = "${System.properties['user.home']}/.gitRepos" base directory for cloning
-        publishAndPushTask = "publishToGithub" // the name for the full publish action
-        publishTask = "publish" //default publish tasks added by maven-publish plugin
-        offline = false // if true, no git clones will be performed, the repo will be assumed to be there
-	}
+      // optional
+      gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
+      provider = "github.com" // or "gitlab.com", or any other github like
+      upstream = "origin"
+      branch = "master"
+      home = "${System.properties['user.home']}/.gitRepos" base directory for cloning
+      publishAndPushTask = "publishToGithub" // the name for the full publish action
+      publishTask = "publish" //default publish tasks added by maven-publish plugin
+      offline = false // if true, no git clones will be performed, the repo will be assumed to be there
+    }
 
 ## Futures
 
