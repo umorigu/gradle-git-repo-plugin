@@ -1,81 +1,63 @@
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'signing'
+buildscript {
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
+	}
+}
+
+apply plugin: "groovy"
+apply plugin: "signing"
+apply plugin: "com.gradle.plugin-publish"
 
 sourceCompatibility = 1.7
-group = 'com.layer'
-apply from: "$rootDir/version.gradle"
+group = "com.github.unafraid.gradle"
+version = "2.0.3"
 
 repositories {
-    mavenCentral()
+	mavenCentral()
+	jcenter()
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile 'org.ajoberstar:gradle-git:1.0.0'
+	compile gradleApi()
+	compile localGroovy()
+	compile "org.ajoberstar:gradle-git:1.6.0"
 }
 
 task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
+	classifier = "javadoc"
+	from javadoc
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+	classifier = "sources"
+	from sourceSets.main.allSource
 }
 
 artifacts {
-    archives javadocJar, sourcesJar
+	archives javadocJar, sourcesJar
 }
 
 signing {
-    sign configurations.archives
+	sign configurations.archives
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+// The configuration example below shows the minimum required properties
+// configured to publish your plugin to the plugin portal
+pluginBundle {
+	website = "https://github.com/UnAfraid/gradle-git-repo-plugin"
+	vcsUrl = "https://github.com/UnAfraid/gradle-git-repo-plugin"
+	description = "Use a git repo as a maven-style repo"
+	tags = ["git", "maven", "repository"]
 
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'Gradle Git Repo Plugin'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'Use a git repo as a maven-style repo'
-                url 'https://github.com/layerhq/gradle-git-repo-plugin'
-
-                scm {
-                    connection 'scm:git:git@github.com:layerhq/gradle-git-repo-plugin.git'
-                    developerConnection 'scm:git:git@github.com:layerhq/gradle-git-repo-plugin.git'
-                    url 'https://github.com/layerhq/gradle-git-repo-plugin'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'drapp'
-                        name 'Douglas Rapp'
-                        email 'doug@layer.com'
-                    }
-                }
-            }
-        }
-    }
+	plugins {
+		greetingsPlugin {
+			id = "com.github.unafraid.gradle.git-repo-plugin"
+			displayName = "Gradle git repository plugin"
+		}
+	}
 }
-

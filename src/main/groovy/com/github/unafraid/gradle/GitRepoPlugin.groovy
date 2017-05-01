@@ -1,4 +1,4 @@
-package com.layer.gradle.gitrepo
+package com.github.unafraid.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -9,7 +9,8 @@ import org.ajoberstar.grgit.*
 
 /**
  * Use a (possibly private) github repo as a maven dependency.
- * Created by drapp on 7/16/14.
+ * @since 7/16/14
+ * @author drapp
  */
 class GitRepoPlugin  implements Plugin<Project> {
     void apply(Project project) {
