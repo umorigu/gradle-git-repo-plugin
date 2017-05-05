@@ -31,13 +31,13 @@ This plugin needs to be added via the standard plugin mechanism with this builds
 			}
 		}
 		dependencies {
-			classpath "gradle.plugin.com.github.unafraid.gradle:gradle-git-repo-plugin:2.0.3"
+			classpath "gradle.plugin.com.github.unafraid.gradle:gradle-git-repo-plugin:2.0.4"
 		}
 	}
 
 # Build script snippet for new, incubating, plugin mechanism introduced in Gradle 2.1:
 	plugins {
-		id "com.github.unafraid.gradle.git-repo-plugin" version "2.0.3"
+		id "com.github.unafraid.gradle.git-repo-plugin" version "2.0.4"
 	}
 
 and then apply the plugin
@@ -149,6 +149,7 @@ For publishing, the following configuration is supported, to allow non-github re
 		publishAndPushTask = "publishToGithub" // the name for the full publish action
 		publishTask = "publish" //default publish tasks added by maven-publish plugin
 		offline = false // if true, no git clones will be performed, the repo will be assumed to be there
+		useCache = true // If false, no caching is used when used in multiple projects may cause some delay
 	}
 
 ## Futures

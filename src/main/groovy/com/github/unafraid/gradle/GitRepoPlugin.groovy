@@ -13,6 +13,8 @@ import org.ajoberstar.grgit.*
  * @author drapp
  */
 class GitRepoPlugin  implements Plugin<Project> {
+	static repoCache = [:]
+	
     void apply(Project project) {
 
         project.extensions.create("gitPublishConfig", GitPublishConfig)
@@ -75,7 +77,7 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static File repositoryDir(Project project, String name) {
-        if(project.hasProperty("gitRepoHome")) {
+        if (project.hasProperty("gitRepoHome")) {
             return project.file("${project.property("gitRepoHome")}/$name")
         } else {
             return project.file("${System.properties['user.home']}/.gitRepos/$name")
@@ -86,7 +88,7 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static String gitCloneUrl(Project project) {
-        if(project.gitPublishConfig.gitUrl != ""){
+        if (project.gitPublishConfig.gitUrl != ""){
             return project.gitPublishConfig.gitUrl
         } else {
             return "git@${project.gitPublishConfig.provider}:${project.gitPublishConfig.org}/${project.gitPublishConfig.repo}.git"
@@ -94,13 +96,22 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String upstream, String branch) {
+    	if (project.gitPublishConfig.useCache) {
+			def cacheKey = "${directory.path}:${name}:${gitUrl}:${branch}"
+	 		if (repoCache.containsKey(cacheKey)) {
+	 			return repoCache[cacheKey]
+	 		}
+ 		}
+        
         def repoDir = new File(directory, name)
         def gitRepo;
+        
         if(repoDir.directory || project.hasProperty("offline")) {
             gitRepo = Grgit.open(dir: repoDir)
         } else {
             gitRepo = Grgit.clone(dir: repoDir, uri: gitUrl)
         }
+        
         if(!project.hasProperty("offline")) {
             if(gitRepo.branch.list().find { it.name == branch })
             {
@@ -112,7 +123,12 @@ class GitRepoPlugin  implements Plugin<Project> {
             }
             gitRepo.pull()
         }
-
+		
+		if (project.gitPublishConfig.useCache) {
+			def cacheKey = "${directory.path}:${name}:${gitUrl}:${branch}"		
+			repoCache[cacheKey] = repoDir;
+		}
+		
         return repoDir;
     }
 
@@ -133,4 +149,5 @@ class GitPublishConfig {
     def String home = "${System.properties['user.home']}/.gitRepos"
     def String publishAndPushTask = "publishToGithub"
     def String publishTask = "publish" //default publish tasks added by maven-publish plugin
+    def boolean useCache = true;
 }

@@ -10,12 +10,11 @@ buildscript {
 }
 
 apply plugin: "groovy"
-apply plugin: "signing"
 apply plugin: "com.gradle.plugin-publish"
 
 sourceCompatibility = 1.7
 group = "com.github.unafraid.gradle"
-version = "2.0.3"
+version = "2.0.4"
 
 repositories {
 	mavenCentral()
@@ -42,12 +41,6 @@ artifacts {
 	archives javadocJar, sourcesJar
 }
 
-signing {
-	sign configurations.archives
-}
-
-// The configuration example below shows the minimum required properties
-// configured to publish your plugin to the plugin portal
 pluginBundle {
 	website = "https://github.com/UnAfraid/gradle-git-repo-plugin"
 	vcsUrl = "https://github.com/UnAfraid/gradle-git-repo-plugin"
