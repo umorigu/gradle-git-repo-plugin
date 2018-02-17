@@ -24,7 +24,7 @@ repositories {
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
-	compile "org.ajoberstar:gradle-git:1.6.0"
+	compile "org.ajoberstar:gradle-git:1.7.2"
 }
 
 task javadocJar(type: Jar) {
@@ -40,6 +40,11 @@ task sourcesJar(type: Jar) {
 artifacts {
 	archives javadocJar, sourcesJar
 }
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "4.5.1"
+}
+
 
 pluginBundle {
 	website = "https://github.com/UnAfraid/gradle-git-repo-plugin"
