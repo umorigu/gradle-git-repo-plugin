@@ -25,10 +25,10 @@ This plugin needs to be added via the standard plugin mechanism with this builds
 
     buildscript {
         repositories {
-            maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
+            maven { url "https://github.com/umorigu/gradle-git-repo-plugin/raw/release/releases" }
         }
         dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.0'
+            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.1'
         }
     }
 
