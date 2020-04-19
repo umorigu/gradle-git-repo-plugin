@@ -23,18 +23,28 @@ to publish. The plugin uses itself to publish itself :).
 
 This plugin needs to be added via the standard plugin mechanism with this buildscript in your top level project
 
-    buildscript {
-        repositories {
-            maven { url "https://github.com/umorigu/gradle-git-repo-plugin/raw/release/releases" }
-        }
-        dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.1'
-        }
+```
+plugins {
+  id "com.github.umorigu.gradle-git-repo-plugin" version "1.0.1"
+}
+```
+
+Or
+
+```
+buildscript {
+    repositories {
+        maven { url "https://github.com/umorigu/gradle-git-repo-plugin/raw/release/releases" }
     }
+    dependencies {
+        classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.1'
+    }
+}
 
-and then apply the plugin
+apply plugin: 'git-repo'
+```
 
-    apply plugin: 'git-repo'
+
 
 
 ### Depending on github repos

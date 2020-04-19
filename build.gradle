@@ -1,7 +1,14 @@
+plugins {
+  id "com.gradle.plugin-publish" version "0.11.0"
+  id "java-gradle-plugin"
+}
+
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 apply from: "$rootDir/version.gradle"
+
+group = 'com.github.umorigu'
 
 dependencies {
     compile gradleApi()
@@ -11,7 +18,6 @@ dependencies {
 publishing {
     publications {
         gitRepoPlugin(MavenPublication) {
-            groupId "com.layer"
             artifactId 'git-repo-plugin'
             from components.java
         }
@@ -19,6 +25,27 @@ publishing {
     repositories {
         maven {
             url "file://${System.env.HOME}/.gitRepos/${property("org")}/${property("repo")}/releases"
+        }
+    }
+}
+
+gradlePlugin {
+    plugins {
+        gitRepoPlugin {
+            id = 'com.github.umorigu.gradle-git-repo-plugin'
+            implementationClass = 'com.layer.gradle.gitrepo.GitRepoPlugin'
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/umorigu/gradle-git-repo-plugin'
+    vcsUrl = 'https://github.com/umorigu/gradle-git-repo-plugin'
+    description = 'Use GitHub repository as a maven repository using native git / ssh'
+    tags = ['git', 'maven', 'repository']
+    plugins {
+        gitRepoPlugin {
+            displayName = 'Git repo plugin'
         }
     }
 }
